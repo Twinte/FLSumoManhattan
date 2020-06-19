@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Mon Mar 25 08:13:01 2019 by Eclipse SUMO netgenerate Version v1_0_1+0645-93703db
+-->
+
+<configuration xmlns:xsi="XMLSchema-instance" xsi:noNamespaceSchemaLocation="my.xsd">
+
+    <grid_network>
+        <grid value="true"/>
+        <grid.number value="5"/>
+    </grid_network>
+    
+<!-- 
+    <ramdom_network>
+        <rand value="true"/>
+    </ramdom_network>
+
+    <spider_network>
+    	<spider value="true"/>
+    </spider_network>
+
+ -->    
+
+ 	<building_defaults>
+    	<default.lanenumber vaule="3"/>
+    </building_defaults>	
+    
+    <tls_building>
+    	<tls.set/>
+    </tls_building>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+    </junctions>
+
+</configuration>
