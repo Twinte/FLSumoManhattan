@@ -110,3 +110,17 @@ Recomenda-se criar um ambiente virtual e instalar as dependências usando um arq
 9.  Os gráficos de métricas são exibidos.
 
 ## Estrutura do Projeto (Exemplo)
+
+sumo-manhattan/
+├── data/                     # Dados (CIFAR-10 será baixado aqui)
+├── sumo-manhattan/           # Arquivos específicos do cenário SUMO
+│   ├── manhattan.sumocfg     # Configuração principal do SUMO
+│   ├── net.net.xml           # Definição da rede viária
+│   ├── routes.xml            # Definição das rotas (ou flows.xml)
+│   └── ...                   # Outros arquivos SUMO (polígonos, etc.)
+├── fedl.py                   # Script principal (orquestrador FL + TraCI)
+├── fed_model.py              # Definição do modelo de ML (CNN)
+├── vehicle_manager.py        # Definição da classe Vehicle e interação com SUMO
+├── requirements.txt          # Dependências Python
+├── README.md                 # Este arquivo
+└── venv/                     # Ambiente virtual Python (opcional)
