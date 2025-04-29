@@ -7,8 +7,14 @@
 
     <input>
         <net-file value="net.net.xml"/>
-        <route-files value="routes.xml"/>
+        <route-files value="routes.xml"/> <additional-files value="rsu.add.xml"/>
     </input>
+
+    <time>
+        </time>
+
+    <processing>
+        </processing>
 
     <report>
         <no-step-log value="true"/>

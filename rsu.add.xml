@@ -1,0 +1,4 @@
+<additional>
+    <poi id="RSU_Central" 
+         type="rsu" 
+         color="0,0,1"  layer="10"       x="450"        y="450" />       </additional>
