@@ -2,7 +2,7 @@ import traci
 import numpy as np
 import torch
 import torch.utils.data # Para DataLoader
-import math # <--- Importação necessária para cálculos de distância
+import math # Importação para cálculos de distância
 
 class Vehicle:
     """Representa um veículo na simulação SUMO que atua como cliente FL."""
@@ -13,34 +13,39 @@ class Vehicle:
 
         Args:
             vehicle_id (str): O ID do veículo no SUMO.
-            cifar_subset (torch.utils.data.Subset): O subconjunto de dados CIFAR-10 atribuído a este veículo.
+            cifar_subset (torch.utils.data.Subset): O subconjunto de dados CIFAR-10 atribuído.
         """
         self.id = vehicle_id
         self.cifar_data = cifar_subset # Armazena o Subset do CIFAR-10
 
-        # Cria um DataLoader para este veículo UMA VEZ (mais eficiente)
+        # Cria um DataLoader para este veículo (se tiver dados)
         if self.cifar_data and len(self.cifar_data) > 0:
-             # Ajuste BATCH_SIZE conforme necessário para treino local
+             # Batch size local pode ser diferente do global
              local_batch_size = 16 if len(self.cifar_data) >= 16 else len(self.cifar_data)
-             # drop_last=True pode evitar batches com tamanho 1, que podem causar problemas em alguns casos (ex: BatchNorm)
-             self.dataloader = torch.utils.data.DataLoader(self.cifar_data, batch_size=local_batch_size, shuffle=True, drop_last=(len(self.cifar_data) > local_batch_size))
+             # drop_last=True evita batches de tamanho 1 que podem dar erro em BatchNorm
+             self.dataloader = torch.utils.data.DataLoader(
+                 self.cifar_data,
+                 batch_size=local_batch_size,
+                 shuffle=True,
+                 drop_last=(len(self.cifar_data) > local_batch_size) # Só descarta se tiver mais q 1 batch
+             )
         else:
              self.dataloader = None # Sem dados, sem dataloader
-             print(f"Aviso: Veículo {self.id} criado sem dados CIFAR ou com dataset vazio.")
+             # print(f"Aviso: Veículo {self.id} criado sem dados CIFAR ou com dataset vazio.") # Log Opcional
 
     def get_position(self):
         """Retorna a posição (x, y) atual do veículo ou None se não encontrado/erro."""
         try:
-            # Verifica se o veículo ainda existe na simulação antes de pegar a posição
-            # getIDList é rápido, getPosition pode lançar exceção se o veículo sumiu
+            # Verifica se o veículo ainda existe na simulação
+            # Usar getIDList pode ser menos eficiente em loops grandes,
+            # mas é mais seguro que tentar pegar a posição diretamente.
             if self.id in traci.vehicle.getIDList():
                 return traci.vehicle.getPosition(self.id)
             else:
-                # Veículo não está mais na simulação
                 return None
-        except traci.TraCIException as e:
-            # Log específico para erro TraCI, pode acontecer se a conexão cair
-            # print(f"Debug: TraCIException em get_position para {self.id}: {e}")
+        except traci.TraCIException:
+            # Erro comum se a conexão com SUMO cair ou o veículo sumir entre comandos
+            # print(f"Debug: TraCIException em get_position para {self.id}") # Log opcional
             return None
         except Exception as e:
             # Captura outros erros inesperados
@@ -74,6 +79,24 @@ class Vehicle:
         # print(f"Debug: Veículo {self.id} - Posição: {current_pos}, Distância da RSU {rsu_pos}: {distance:.2f}m") # Log opcional
         return distance <= max_range
 
-# Nota: A função create_vehicle_list foi integrada/adaptada no loop principal de fedl.py
-# para lidar com a entrada dinâmica de veículos e atribuição de datasets.
-# Se você precisar dela separada por algum motivo, ajuste conforme necessário.
+    # Se precisar das funções get_state, get_labels, update_buffer para
+    # coletar dados do SUMO (não usadas no treino CIFAR atual), mantenha-as aqui.
+    # Exemplo:
+    # def get_state(self):
+    #     """Retorna o estado normalizado do veículo (ex: pos, vel)."""
+    #     pos = self.get_position()
+    #     if pos is None: return None
+    #     try:
+    #         speed = traci.vehicle.getSpeed(self.id)
+    #         max_speed = traci.vehicle.getAllowedSpeed(self.id)
+    #         speed_ratio = min(speed / max_speed, 1.0) if max_speed > 0 else 0.0
+    #         # Exemplo de normalização - ajuste conforme necessário
+    #         return [pos[0]/1000.0, pos[1]/1000.0, speed_ratio]
+    #     except traci.TraCIException:
+    #         return None
+    #     except Exception as e:
+    #          print(f"Erro em get_state para {self.id}: {e}")
+    #          return None
+
+# A função create_vehicle_list não é mais necessária aqui,
+# pois a criação e atribuição de dados são feitas dinamicamente em fedl.py.
